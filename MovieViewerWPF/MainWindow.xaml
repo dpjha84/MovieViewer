@@ -6,7 +6,67 @@
         xmlns:local="clr-namespace:MovieViewerWPF"
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        
-    </Grid>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="12*"/>
+            </Grid.RowDefinitions>
+            <TextBox x:Name="textBox" Grid.Row="0" HorizontalAlignment="Left" Margin="100, 0, 0, 0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" />
+            <Button x:Name="button" Content="Refresh" HorizontalAlignment="Left" Margin="180, 0, 0, 0" VerticalAlignment="Top" Grid.Row="0" Click="button_Click"/>
+            <Button x:Name="button1" Content="Clean Up" HorizontalAlignment="Left" Margin="260, 0, 0, 0" VerticalAlignment="Top" Grid.Row="0" Click="Button1_OnClick"/>
+            <TextBlock x:Name="statusLebel" Text="" HorizontalAlignment="Left" Foreground="Green" Margin="400, 0, 0, 0" VerticalAlignment="Top" Grid.Row="0"/>
+            <TextBlock x:Name="sizeLebel" Text="" HorizontalAlignment="Left" Foreground="Green" Margin="700, 0, 0, 0" VerticalAlignment="Top" Grid.Row="0"/>
+            <TextBlock x:Name="timeTakenLebel" Text="" HorizontalAlignment="Left" Foreground="Green" Margin="900, 0, 0, 0" VerticalAlignment="Top" Grid.Row="0"/>
+            <TextBlock x:Name="totalItemsLebel" Text="" HorizontalAlignment="Left" Foreground="Green" Margin="1200, 0, 0, 0" VerticalAlignment="Top" Grid.Row="0"/>
+            <!--<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">-->
+            <Grid Name="grid1" Grid.Row="1">
+                <ItemsControl Name="ic">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Expander Header="{Binding Key}" IsExpanded="True">
+
+                                <ItemsControl  Name="fo" ItemsSource="{Binding Value}" HorizontalContentAlignment="Center">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="DarkSlateGray"  BorderThickness="2" CornerRadius="3" Margin="3" Padding="3">
+                                                <StackPanel Orientation="Vertical" Grid.Column="0" Grid.Row="0">
+
+                                                    <StackPanel Orientation="Horizontal">
+
+                                                        <CheckBox Name="chk" Margin="2" Tag="{Binding}"  ></CheckBox>
+                                                        <TextBlock Text="{Binding Title}" ></TextBlock>
+                                                        <!--<Button Initialized="FrameworkElement_OnInitialized" Height="100" Width="100" MouseDoubleClick="Control_OnMouseDoubleClick" Click="ButtonBase_OnClick">
+                                                    <Button.Template>
+                                                        <ControlTemplate>
+                                                            <Image Source="{Binding FullName}" HorizontalAlignment="Left"/>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>-->
+                                                    </StackPanel>
+                                                    <!--<TextBlock Text="{Binding DirectoryName}"></TextBlock>-->
+                                                    <Button Initialized="FrameworkElement_OnInitialized" Height="100" Width="100" MouseDoubleClick="Control_OnMouseDoubleClick" Click="ButtonBase_OnClick">
+                                                        <Button.Template>
+                                                            <ControlTemplate>
+                                                                <Image Source="{Binding Title}" HorizontalAlignment="Left"/>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <VirtualizingStackPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+                            </Expander>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
 </Window>
