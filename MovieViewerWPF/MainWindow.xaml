@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MovieViewerWPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" Height="350" Width="525" WindowState="Maximized">
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <Grid>
             <Grid.RowDefinitions>
@@ -48,7 +48,7 @@
                                                     <Button Initialized="FrameworkElement_OnInitialized" Height="100" Width="100" MouseDoubleClick="Control_OnMouseDoubleClick" Click="ButtonBase_OnClick">
                                                         <Button.Template>
                                                             <ControlTemplate>
-                                                                <Image Source="{Binding Title}" HorizontalAlignment="Left"/>
+                                                                <Image Source="{Binding LocalImageThumbnail}" HorizontalAlignment="Left"/>
                                                             </ControlTemplate>
                                                         </Button.Template>
                                                     </Button>
