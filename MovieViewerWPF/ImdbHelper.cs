@@ -34,15 +34,14 @@ namespace MovieViewerWPF
 
             if (mm == null)
             {
-                mm = new Movie();
-                movies.Movie.Add(mm);
+                mm = new Movie();                
                 IMDb imdb = GetImdbMovie(matchingMovieName);
                 if (imdb != null && imdb.Id != null)
                 {
                     mm.Name = HttpUtility.HtmlDecode(string.IsNullOrWhiteSpace(imdb.OriginalTitle) ? imdb.Title : imdb.OriginalTitle);
                     mm.LocalName = matchingMovieName;
                     mm.FullLocalPath = localFileName;
-                    //mm.Rating = imdb.Rating;
+                    mm.Rating = imdb.Rating;
                     //mm.Genre = imdb.Genres.Count > 0 ? string.Format("{0}, {1}", imdb.Genres[0], imdb.Genres[1])  : string.Empty;
                     //mm.Genre = imdb.Genres.Count > 0 ? (string.Format("{0}", imdb.Genres.Count > 1 ?
                     //string.Format("{0}, {1}", imdb.Genres[0], imdb.Genres[1]) : imdb.Genres[0])) : string.Empty;
@@ -59,8 +58,9 @@ namespace MovieViewerWPF
                 {
                     mm.Name = matchingMovieName;
                     mm.FullLocalPath = localFileName;
-                    //mm.LocalName = matchingMovieName;
+                    mm.LocalName = matchingMovieName;
                 }
+                movies.Movie.Add(mm);
             }
             //IMDb_Scraper.IMDb imdb = new IMDb()
             
@@ -78,27 +78,30 @@ namespace MovieViewerWPF
             }
             //Interlocked.Increment(ref Utility.NotFoundCounter);
             string url = string.IsNullOrWhiteSpace(mm.LocalImageThumbnail) ? mm.ImageThumbnail : mm.LocalImageThumbnail;
-            Uri urlUri = new Uri(url);
-            var request = WebRequest.CreateDefault(urlUri);
-
-            byte[] buffer = new byte[4096];
-
-            using (var target = new FileStream(imagePath, FileMode.Create, FileAccess.Write))
+            if (!string.IsNullOrEmpty(url))
             {
-                using (var response = request.GetResponse())
-                {
-                    using (var stream = response.GetResponseStream())
-                    {
-                        int read;
+                Uri urlUri = new Uri(url);
+                var request = WebRequest.CreateDefault(urlUri);
 
-                        while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                byte[] buffer = new byte[4096];
+
+                using (var target = new FileStream(imagePath, FileMode.Create, FileAccess.Write))
+                {
+                    using (var response = request.GetResponse())
+                    {
+                        using (var stream = response.GetResponseStream())
                         {
-                            target.Write(buffer, 0, read);
+                            int read;
+
+                            while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                            {
+                                target.Write(buffer, 0, read);
+                            }
                         }
                     }
                 }
+                mm.LocalImageThumbnail = imagePath;
             }
-            mm.LocalImageThumbnail = imagePath;
             return mm.LocalImageThumbnail;
         }
 
@@ -124,6 +127,42 @@ namespace MovieViewerWPF
                 encoder.Save(filestream);
         }
 
+        List<IMDb> ImdbMovies = new List<IMDb>();
+
+        public async Task AwaitMovies()
+        {
+
+            foreach (var imdb in ImdbMovies)
+            {
+                var mm = movies.Movie.Where(m => m.LocalName == imdb.MovieInfoTask.MovieName).FirstOrDefault();
+                await imdb.AwaitMovies(imdb.MovieInfoTask);
+                if (imdb != null && imdb.Id != null)
+                {
+                    mm.Name = HttpUtility.HtmlDecode(string.IsNullOrWhiteSpace(imdb.OriginalTitle) ? imdb.Title : imdb.OriginalTitle);
+                    //mm.LocalName = matchingMovieName;
+                    //.FullLocalPath = localFileName;
+                    mm.Rating = imdb.Rating;
+                    //mm.Genre = imdb.Genres.Count > 0 ? string.Format("{0}, {1}", imdb.Genres[0], imdb.Genres[1])  : string.Empty;
+                    //mm.Genre = imdb.Genres.Count > 0 ? (string.Format("{0}", imdb.Genres.Count > 1 ?
+                    //string.Format("{0}, {1}", imdb.Genres[0], imdb.Genres[1]) : imdb.Genres[0])) : string.Empty;
+                    mm.ImageThumbnail = imdb.Poster;
+                    mm.Id = imdb.Id;
+                    mm.LocalImageThumbnail = LoadImage(mm);
+                    //mm.Year = imdb.Year;
+                    //mm.Duration = string.IsNullOrEmpty(imdb.Runtime) ? 0 : int.Parse(imdb.Runtime);
+                    //if (mm.Id != imdb.Id)
+                    //    mm.LocalImageThumbnail = null;
+                    //mm.Id = imdb.Id;
+                }
+                else
+                {
+                    //mm.Name = matchingMovieName;
+                    //mm.FullLocalPath = localFileName;
+                    //mm.LocalName = matchingMovieName;
+                }
+            }
+        }
+
 
         private IMDb GetImdbMovie(string matchingMovieName)
         {
@@ -133,6 +172,7 @@ namespace MovieViewerWPF
                 try
                 {
                     imdb = new IMDb(matchingMovieName);
+                    ImdbMovies.Add(imdb);
                     break;
                 }
                 catch (WebException ex)

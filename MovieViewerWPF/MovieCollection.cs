@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -51,6 +52,6 @@ namespace MovieViewerWPF
     {
         [XmlArray("Movies")]
         [XmlArrayItem("Movie", typeof(Movie))]
-        public List<Movie> Movie { get; set; }
+        public ConcurrentBag<Movie> Movie { get; set; }
     }
 }

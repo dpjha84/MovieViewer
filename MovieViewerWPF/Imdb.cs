@@ -56,7 +56,8 @@ namespace IMDb_Scraper
         //Constructor
         public IMDb(string MovieName, bool GetExtraInfo = true)
         {
-            string imdbUrl = getIMDbUrl(System.Uri.EscapeUriString(MovieName));
+            string imdbUrl =
+                getIMDbUrl(System.Uri.EscapeUriString(MovieName));
             status = false;
             if (!string.IsNullOrEmpty(imdbUrl))
             {
@@ -65,12 +66,13 @@ namespace IMDb_Scraper
         }
 
         //Get IMDb URL from search results
-        private string getIMDbUrl(string MovieName, string searchEngine = "google")
+        private string getIMDbUrl(string MovieName, string searchEngine = "bing")
         {
             string url = GoogleSearch + MovieName; //default to Google search
             if (searchEngine.ToLower().Equals("bing")) url = BingSearch + MovieName;
             if (searchEngine.ToLower().Equals("ask")) url = AskSearch + MovieName;
-            string html = getUrlData(url);
+            var html = 
+                getUrlData(url);
             ArrayList imdbUrls = matchAll(@"<a href=""(http://www.imdb.com/title/tt\d{7}/)"".*?>.*?</a>", html);
             if (imdbUrls.Count > 0)
                 return (string)imdbUrls[0]; //return first IMDb result
@@ -95,27 +97,27 @@ namespace IMDb_Scraper
                 Year = match(@"<title>.*?\(.*?(\d{4}).*?\).*?</title>", html);
                 Rating = match(@"<b>(\d.\d)/10</b>", html);
                 Genres = matchAll(@"<a.*?>(.*?)</a>", match(@"Genre.?:(.*?)(</div>|See more)", html));
-                Directors = matchAll(@"<td valign=""top""><a.*?href=""/name/.*?/"">(.*?)</a>", match(@"Directed by</a></h5>(.*?)</table>", html));
-                Writers = matchAll(@"<td valign=""top""><a.*?href=""/name/.*?/"">(.*?)</a>", match(@"Writing credits</a></h5>(.*?)</table>", html));
-                Producers = matchAll(@"<td valign=""top""><a.*?href=""/name/.*?/"">(.*?)</a>", match(@"Produced by</a></h5>(.*?)</table>", html));
-                Musicians = matchAll(@"<td valign=""top""><a.*?href=""/name/.*?/"">(.*?)</a>", match(@"Original Music by</a></h5>(.*?)</table>", html));
-                Cinematographers = matchAll(@"<td valign=""top""><a.*?href=""/name/.*?/"">(.*?)</a>", match(@"Cinematography by</a></h5>(.*?)</table>", html));
-                Editors = matchAll(@"<td valign=""top""><a.*?href=""/name/.*?/"">(.*?)</a>", match(@"Film Editing by</a></h5>(.*?)</table>", html));
-                Cast = matchAll(@"<td class=""nm""><a.*?href=""/name/.*?/"".*?>(.*?)</a>", match(@"<h3>Cast</h3>(.*?)</table>", html));
-                Plot = match(@"Plot:</h5>.*?<div class=""info-content"">(.*?)(<a|</div)", html);
-                PlotKeywords = matchAll(@"<a.*?>(.*?)</a>", match(@"Plot Keywords:</h5>.*?<div class=""info-content"">(.*?)</div", html));
-                ReleaseDate = match(@"Release Date:</h5>.*?<div class=""info-content"">.*?(\d{1,2} (January|February|March|April|May|June|July|August|September|October|November|December) (19|20)\d{2})", html);
-                Runtime = match(@"Runtime:</h5><div class=""info-content"">(\d{1,4}) min[\s]*.*?</div>", html);
-                Top250 = match(@"Top 250: #(\d{1,3})<", html);
-                Oscars = match(@"Won (\d+) Oscars?\.", html);
-                if (string.IsNullOrEmpty(Oscars) && "Won Oscar.".Equals(match(@"(Won Oscar\.)", html))) Oscars = "1";
-                Awards = match(@"(\d{1,4}) wins", html);
-                Nominations = match(@"(\d{1,4}) nominations", html);
-                Tagline = match(@"Tagline:</h5>.*?<div class=""info-content"">(.*?)(<a|</div)", html);
-                MpaaRating = match(@"MPAA</a>:</h5><div class=""info-content"">Rated (G|PG|PG-13|PG-14|R|NC-17|X) ", html);
-                Votes = match(@">(\d+,?\d*) votes<", html);
-                Languages = matchAll(@"<a.*?>(.*?)</a>", match(@"Language.?:(.*?)(</div>|>.?and )", html));
-                Countries = matchAll(@"<a.*?>(.*?)</a>", match(@"Country:(.*?)(</div>|>.?and )", html));
+                //Directors = matchAll(@"<td valign=""top""><a.*?href=""/name/.*?/"">(.*?)</a>", match(@"Directed by</a></h5>(.*?)</table>", html));
+                //Writers = matchAll(@"<td valign=""top""><a.*?href=""/name/.*?/"">(.*?)</a>", match(@"Writing credits</a></h5>(.*?)</table>", html));
+                //Producers = matchAll(@"<td valign=""top""><a.*?href=""/name/.*?/"">(.*?)</a>", match(@"Produced by</a></h5>(.*?)</table>", html));
+                //Musicians = matchAll(@"<td valign=""top""><a.*?href=""/name/.*?/"">(.*?)</a>", match(@"Original Music by</a></h5>(.*?)</table>", html));
+                //Cinematographers = matchAll(@"<td valign=""top""><a.*?href=""/name/.*?/"">(.*?)</a>", match(@"Cinematography by</a></h5>(.*?)</table>", html));
+                //Editors = matchAll(@"<td valign=""top""><a.*?href=""/name/.*?/"">(.*?)</a>", match(@"Film Editing by</a></h5>(.*?)</table>", html));
+                //Cast = matchAll(@"<td class=""nm""><a.*?href=""/name/.*?/"".*?>(.*?)</a>", match(@"<h3>Cast</h3>(.*?)</table>", html));
+                //Plot = match(@"Plot:</h5>.*?<div class=""info-content"">(.*?)(<a|</div)", html);
+                //PlotKeywords = matchAll(@"<a.*?>(.*?)</a>", match(@"Plot Keywords:</h5>.*?<div class=""info-content"">(.*?)</div", html));
+                //ReleaseDate = match(@"Release Date:</h5>.*?<div class=""info-content"">.*?(\d{1,2} (January|February|March|April|May|June|July|August|September|October|November|December) (19|20)\d{2})", html);
+                //Runtime = match(@"Runtime:</h5><div class=""info-content"">(\d{1,4}) min[\s]*.*?</div>", html);
+                //Top250 = match(@"Top 250: #(\d{1,3})<", html);
+                //Oscars = match(@"Won (\d+) Oscars?\.", html);
+                //if (string.IsNullOrEmpty(Oscars) && "Won Oscar.".Equals(match(@"(Won Oscar\.)", html))) Oscars = "1";
+                //Awards = match(@"(\d{1,4}) wins", html);
+                //Nominations = match(@"(\d{1,4}) nominations", html);
+                //Tagline = match(@"Tagline:</h5>.*?<div class=""info-content"">(.*?)(<a|</div)", html);
+                //MpaaRating = match(@"MPAA</a>:</h5><div class=""info-content"">Rated (G|PG|PG-13|PG-14|R|NC-17|X) ", html);
+                //Votes = match(@">(\d+,?\d*) votes<", html);
+                //Languages = matchAll(@"<a.*?>(.*?)</a>", match(@"Language.?:(.*?)(</div>|>.?and )", html));
+                //Countries = matchAll(@"<a.*?>(.*?)</a>", match(@"Country:(.*?)(</div>|>.?and )", html));
                 Poster = match(@"<div class=""photo"">.*?<a name=""poster"".*?><img.*?src=""(.*?)"".*?</div>", html);
                 if (!string.IsNullOrEmpty(Poster))// && Poster.IndexOf("media-imdb.com") > 0)
                 {
@@ -210,6 +212,21 @@ namespace IMDb_Scraper
         }
 
         //Get URL Data
+        private void getUrlDataAsync(string url, string movieName)
+        {
+            WebClient client = new WebClient();
+            Random r = new Random();
+            //Random IP Address
+            client.Headers["X-Forwarded-For"] = r.Next(0, 255) + "." + r.Next(0, 255) + "." + r.Next(0, 255) + "." + r.Next(0, 255);
+            //Random User-Agent
+            client.Headers["User-Agent"] = "Mozilla/" + r.Next(3, 5) + ".0 (Windows NT " + r.Next(3, 5) + "." + r.Next(0, 2) + "; rv:2.0.1) Gecko/20100101 Firefox/" + r.Next(3, 5) + "." + r.Next(0, 5) + "." + r.Next(0, 5);
+
+            MovieInfoTask = new ImdbMovie() { DataStream = client.OpenReadTaskAsync(url), MovieName = movieName };
+            
+        }
+
+        public ImdbMovie MovieInfoTask { get; set; }
+
         private string getUrlData(string url)
         {
             WebClient client = new WebClient();
@@ -218,12 +235,53 @@ namespace IMDb_Scraper
             client.Headers["X-Forwarded-For"] = r.Next(0, 255) + "." + r.Next(0, 255) + "." + r.Next(0, 255) + "." + r.Next(0, 255);
             //Random User-Agent
             client.Headers["User-Agent"] = "Mozilla/" + r.Next(3, 5) + ".0 (Windows NT " + r.Next(3, 5) + "." + r.Next(0, 2) + "; rv:2.0.1) Gecko/20100101 Firefox/" + r.Next(3, 5) + "." + r.Next(0, 5) + "." + r.Next(0, 5);
-            Stream datastream = client.OpenRead(url);
+
+            var datastream = client.OpenRead(url);
             StreamReader reader = new StreamReader(datastream);
             StringBuilder sb = new StringBuilder();
             while (!reader.EndOfStream)
                 sb.Append(reader.ReadLine());
             return sb.ToString();
+
         }
+
+        public async Task AwaitMovies(ImdbMovie task)
+        {
+            var datastream = await task.DataStream;
+            StreamReader reader = new StreamReader(datastream);
+            StringBuilder sb = new StringBuilder();
+            while (!reader.EndOfStream)
+                sb.Append(reader.ReadLine());
+            var html = sb.ToString();
+            var imdbUrl = GetImdbUrl(html, task.MovieName);
+
+            status = false;
+            if (!string.IsNullOrEmpty(imdbUrl))
+            {
+                parseIMDbPage(imdbUrl, true);
+            }
+        }
+
+        private string GetImdbUrl(string html, string MovieName)
+        {
+            var searchEngine = "google";
+            ArrayList imdbUrls = matchAll(@"<a href=""(http://www.imdb.com/title/tt\d{7}/)"".*?>.*?</a>", html);
+            if (imdbUrls.Count > 0)
+                return (string)imdbUrls[0]; //return first IMDb result
+            else if (searchEngine.ToLower().Equals("google")) //if Google search fails
+                return getIMDbUrl(MovieName, "bing"); //search using Bing
+            else if (searchEngine.ToLower().Equals("bing")) //if Bing search fails
+                return getIMDbUrl(MovieName, "ask"); //search using Ask
+            else //search fails
+                return string.Empty;
+        }
+
+        public List<ImdbMovie> MovieTasks = new List<ImdbMovie>();
+    }
+
+    public class ImdbMovie
+    {
+        public Task<Stream> DataStream { get; set; }
+        public string MovieName { get; set; }
     }
 }
