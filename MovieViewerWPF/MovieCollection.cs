@@ -52,6 +52,6 @@ namespace MovieViewerWPF
     {
         [XmlArray("Movies")]
         [XmlArrayItem("Movie", typeof(Movie))]
-        public ConcurrentBag<Movie> Movie { get; set; }
+        public List<Movie> Movie { get; set; }
     }
 }

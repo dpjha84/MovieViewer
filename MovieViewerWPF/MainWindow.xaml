@@ -12,12 +12,12 @@
                 <RowDefinition Height="1*"/>
                 <RowDefinition Height="12*"/>
             </Grid.RowDefinitions>
-            <TextBox x:Name="textBox" Grid.Row="0" HorizontalAlignment="Left" Margin="10, 5, 0, 0" Text="F:\Test" VerticalAlignment="Top" Width="160" />
+            <TextBox x:Name="textBox" Grid.Row="0" HorizontalAlignment="Left" Margin="10, 5, 0, 0" Text="F:\Test\The.Theory.of.Everything.2014.DVDScr.XVID.AC3.SHQ.Hive-CM8\Love.Rosie.2014.BDRip.X264-AMIABLE[et]" VerticalAlignment="Top" Width="160" />
             <Button x:Name="button" Content="Refresh" HorizontalAlignment="Left" Margin="180, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0" Click="button_Click"/>
             <Button x:Name="button1" Content="Clean Up" HorizontalAlignment="Left" Margin="260, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0" />
-            <TextBlock x:Name="statusLebel" Text="" FontWeight="Bold" HorizontalAlignment="Left" Foreground="Green" Margin="400, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0"/>
-            <TextBlock x:Name="sizeLebel" Text="" HorizontalAlignment="Left" Foreground="Green" Margin="700, 0, 0, 0" VerticalAlignment="Top" Grid.Row="0"/>
-            <TextBlock x:Name="timeTakenLebel" FontWeight="Bold" Text="" HorizontalAlignment="Left" Foreground="Green" Margin="600, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0"/>
+            <TextBlock x:Name="statusLebel" Text="" FontWeight="Bold" HorizontalAlignment="Left" Foreground="GreenYellow" Margin="400, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0"/>
+            <CheckBox x:Name="chkCache" FontWeight="Bold" Content="Cache data" Unchecked="chkCache_Unchecked" IsChecked="True" HorizontalAlignment="Left" Foreground="GreenYellow"  Margin="820, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0"/>
+            <TextBlock x:Name="timeTakenLebel" FontWeight="Bold" Text="" HorizontalAlignment="Left" Foreground="GreenYellow" Margin="600, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0"/>
             <TextBlock x:Name="totalItemsLebel" Text="" HorizontalAlignment="Left" Foreground="Green" Margin="1200, 0, 0, 0" VerticalAlignment="Top" Grid.Row="0"/>
             <Grid Name="grid1" Grid.Row="1" Background="Transparent" >
                 <ItemsControl   Name="ic" HorizontalContentAlignment="Center" Foreground="White">

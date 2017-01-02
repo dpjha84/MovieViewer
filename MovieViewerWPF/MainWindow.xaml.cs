@@ -42,7 +42,7 @@ namespace MovieViewerWPF
             appRoot = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             cacheFilePath = string.Format(@"{0}\Movies.xml", appRoot);
             ImdbHelper.movies = ReadCache();
-            ic.ItemsSource = data;
+            ic.ItemsSource = data;//.OrderByDescending(d => d.Rating));
         }
         
         private void button_Click(object sender, RoutedEventArgs e)
@@ -95,7 +95,7 @@ namespace MovieViewerWPF
             Stopwatch sw = new Stopwatch();
             sw.Start();
             //foreach (var file1 in SafeFileEnumerator.EnumerateFiles(dirName, SearchOption.AllDirectories, extList, exclusionList, sz))
-                Parallel.ForEach(SafeFileEnumerator.EnumerateFiles(dirName, SearchOption.AllDirectories, extList, exclusionList, sz), new ParallelOptions { MaxDegreeOfParallelism = 2}, file1 =>
+                Parallel.ForEach(SafeFileEnumerator.EnumerateFiles(dirName, SearchOption.AllDirectories, extList, exclusionList, sz), new ParallelOptions { MaxDegreeOfParallelism = 4}, file1 =>
             {
                 string matchingMovieName = GetMatch(System.IO.Path.GetFileNameWithoutExtension(file1));
                 var movie = imdb.GetMovie(file1, matchingMovieName);
@@ -103,6 +103,13 @@ namespace MovieViewerWPF
                 Dispatcher.Invoke(() => { data.Add(movie); });
             }
             );
+            using (var sw1 = new StreamWriter(new FileStream("ErrorLog.txt", FileMode.Append, FileAccess.Write, FileShare.ReadWrite)))
+            {
+                sw1.WriteLineAsync($"Total time taken: {imdb.sw.Elapsed}");
+                sw1.WriteLineAsync($"Total time taken in download data: {IMDb_Scraper.IMDb.sw.Elapsed}");
+                sw1.WriteLineAsync($"Total time taken in regex: {IMDb_Scraper.IMDb.sw1.Elapsed}");
+            }
+
             Dispatcher.Invoke(() => { timeTakenLebel.Text = $"Time: {sw.Elapsed.TotalSeconds}s"; });
             completed = true;
             imdb.UpdateCache();
@@ -158,7 +165,7 @@ namespace MovieViewerWPF
 
         private MovieCollection ReadCache()
         {
-            movies = new MovieCollection() { Movie = new ConcurrentBag<Movie>() };
+            movies = new MovieCollection() { Movie = new List<Movie>() };
             try
             {
 
@@ -191,6 +198,13 @@ namespace MovieViewerWPF
             //b.BorderThickness = new Thickness(1);
             Button btn = (Button)b.FindName("btnEye");
             btn.Visibility = Visibility.Hidden;
+        }
+
+        private void chkCache_Unchecked(object sender, RoutedEventArgs e)
+        {
+            var checkCache = (CheckBox)sender;
+            if (!(bool)checkCache.IsChecked)
+                ImdbHelper.movies.Movie.Clear();
         }
     }
 }
