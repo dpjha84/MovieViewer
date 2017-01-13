@@ -43,6 +43,9 @@ namespace MovieViewerWPF
 
         [System.Xml.Serialization.XmlElement("Duration")]
         public int Duration { get; set; }
+
+        [System.Xml.Serialization.XmlElement("Watched")]
+        public bool Watched { get; set; }
     }
 
 

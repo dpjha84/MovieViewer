@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -30,8 +31,10 @@ namespace MovieViewerWPF
         string dirName = null;
         private bool stopRefresh = false;
         ObservableCollection<Movie> data = new ObservableCollection<Movie>();
+        ObservableCollection<Movie> dataCopy = new ObservableCollection<Movie>();
         private BackgroundWorker worker = null;
         private bool completed = false;
+        private bool? showWatched = null;
 
         public MainWindow()
         {
@@ -42,7 +45,7 @@ namespace MovieViewerWPF
             appRoot = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             cacheFilePath = string.Format(@"{0}\Movies.xml", appRoot);
             ImdbHelper.movies = ReadCache();
-            ic.ItemsSource = data;//.OrderByDescending(d => d.Rating));
+            ic.ItemsSource = data;
         }
         
         private void button_Click(object sender, RoutedEventArgs e)
@@ -86,7 +89,7 @@ namespace MovieViewerWPF
             Dispatcher.Invoke(() => { data.Clear(); });
             var dataDict = new Dictionary<string, List<FileInfo>>();
             List<string> exclusionList = new List<string>();
-            int sz = 500;
+            int sz = 50;
             var extList = new HashSet<string>();
             extList.Add("avi");
             extList.Add("mkv");
@@ -100,16 +103,20 @@ namespace MovieViewerWPF
                 string matchingMovieName = GetMatch(System.IO.Path.GetFileNameWithoutExtension(file1));
                 var movie = imdb.GetMovie(file1, matchingMovieName);
                 movie.FullLocalPath = file1;
-                Dispatcher.Invoke(() => { data.Add(movie); });
+                Dispatcher.Invoke(() =>
+                {
+                    data.Add(movie);
+                    data.Sort(d => d.Rating);
+                });
             }
             );
-            using (var sw1 = new StreamWriter(new FileStream("ErrorLog.txt", FileMode.Append, FileAccess.Write, FileShare.ReadWrite)))
-            {
-                sw1.WriteLineAsync($"Total time taken: {imdb.sw.Elapsed}");
-                sw1.WriteLineAsync($"Total time taken in download data: {IMDb_Scraper.IMDb.sw.Elapsed}");
-                sw1.WriteLineAsync($"Total time taken in regex: {IMDb_Scraper.IMDb.sw1.Elapsed}");
-            }
-
+            //using (var sw1 = new StreamWriter(new FileStream("ErrorLog.txt", FileMode.Append, FileAccess.Write, FileShare.ReadWrite)))
+            //{
+            //    sw1.WriteLineAsync($"Total time taken: {imdb.sw.Elapsed}");
+            //    sw1.WriteLineAsync($"Total time taken in download data: {IMDb_Scraper.IMDb.sw.Elapsed}");
+            //    sw1.WriteLineAsync($"Total time taken in regex: {IMDb_Scraper.IMDb.sw1.Elapsed}");
+            //}
+            dataCopy = data.Clone();
             Dispatcher.Invoke(() => { timeTakenLebel.Text = $"Time: {sw.Elapsed.TotalSeconds}s"; });
             completed = true;
             imdb.UpdateCache();
@@ -148,7 +155,9 @@ namespace MovieViewerWPF
         private void FrameworkElement_OnInitialized(object sender, EventArgs e)
         {
             var button = (Button)sender;
-            string file = ((MovieViewerWPF.Movie)(((System.Windows.FrameworkElement)sender).DataContext)).LocalImageThumbnail;
+            var movie = ((MovieViewerWPF.Movie) (((System.Windows.FrameworkElement) sender).DataContext));
+            if (movie == null) return;
+            string file = movie.LocalImageThumbnail;
             if (System.IO.Path.GetExtension(file) != ".jpg")
             {
                 button.Height = 20;
@@ -184,27 +193,60 @@ namespace MovieViewerWPF
             return movies;
         }
 
-        private void Grid_MouseEnter(object sender, MouseEventArgs e)
-        {
-            Grid b = sender as Grid;
-            //b.BorderThickness = new Thickness(3);
-            Button btn = (Button)b.FindName("btnEye");
-            btn.Visibility = Visibility.Visible;
-        }
-
-        private void Grid_MouseLeave(object sender, MouseEventArgs e)
-        {
-            Grid b = sender as Grid;
-            //b.BorderThickness = new Thickness(1);
-            Button btn = (Button)b.FindName("btnEye");
-            btn.Visibility = Visibility.Hidden;
-        }
-
         private void chkCache_Unchecked(object sender, RoutedEventArgs e)
         {
             var checkCache = (CheckBox)sender;
             if (!(bool)checkCache.IsChecked)
                 ImdbHelper.movies.Movie.Clear();
+        }
+
+        private void BtnEye_OnClick(object sender, RoutedEventArgs e)
+        {
+            var button = (Button)sender;
+            var movie = ((Movie) (((FrameworkElement) sender).DataContext));
+            movie.Watched = !movie.Watched;
+            dataCopy = data.Clone();
+            imdb.UpdateCache();
+        }
+
+        private void BtnWatched_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (showWatched == null)
+                showWatched = true;
+            else
+                showWatched = !showWatched;
+
+            data.Clear();
+            foreach (var movie in dataCopy)
+            {
+                var temp = dataCopy.FirstOrDefault(a => a.Id == movie.Id && a.Watched == (bool) showWatched);
+                if (temp != null)
+                    data.Add(temp);
+            }
+        }
+    }
+
+    public static class Extensions
+    {
+        public static void Sort<TSource, TKey>(this ObservableCollection<TSource> source, Func<TSource, TKey> keySelector)
+        {
+            List<TSource> sortedList = source.OrderByDescending(keySelector).ToList();
+            source.Clear();
+            foreach (var sortedItem in sortedList)
+            {
+                source.Add(sortedItem);
+            }
+        }
+
+        public static T Clone<T>(this T source)
+        {
+            MemoryStream ms = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(ms, source);
+            ms.Position = 0;
+            object obj = bf.Deserialize(ms);
+            ms.Close();
+            return (T)obj;
         }
     }
 }
