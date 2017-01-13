@@ -112,23 +112,12 @@ namespace MovieViewerWPF
                 });
             }
             );
-            dataCopy = Clone(data);
+            dataCopy = data.Clone();
             Dispatcher.Invoke(() => { timeTakenLebel.Text = $"Time: {sw.Elapsed.TotalSeconds}s"; });
             completed = true;
             imdb.UpdateCache();
         }
 
-        public ObservableCollection<Movie> Clone(object obj)
-        {
-            IFormatter formatter = new BinaryFormatter();
-            Stream stream = new MemoryStream();
-            using (stream)
-            {
-                formatter.Serialize(stream, obj);
-                stream.Seek(0, SeekOrigin.Begin);
-                return formatter.Deserialize(stream) as ObservableCollection<Movie>;
-            }
-        }
         private string GetMatch(string movieName)
         {
             movieName = movieName.Replace(".", " ");
@@ -217,6 +206,24 @@ namespace MovieViewerWPF
             imdb.UpdateCache();
         }
 
+        private void txtSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            data = dataCopy.Clone();
+            ic.ItemsSource = data;
+            var text = ((TextBox)sender).Text;
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return;
+            }
+            foreach (var i in dataCopy)
+            {
+                if (!i.Name.ToLower().Contains(text.ToLower()))
+                {
+                    data.Remove(data.FirstOrDefault(d => d.Id == i.Id));
+                }
+            }
+        }
+
         private void BtnWatched_OnClick(object sender, RoutedEventArgs e)
         {
             if (showWatched == null)
@@ -257,85 +264,34 @@ namespace MovieViewerWPF
             return (T)obj;
         }
 
-        private void txtSearch_PreviewMouseDown(object sender, MouseButtonEventArgs e)
-        {
-            //txtSearch.Text = "";
-        }
-
-        private void txtSearch_PreviewMouseUp(object sender, MouseButtonEventArgs e)
-        {
-            //txtSearch.Text = "Search Movies";
-        }
-
-        private void txtSearch_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            data = Clone(dataCopy);
-            ic.ItemsSource = data;
-            var text = ((TextBox)sender).Text;
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return;
-            }
-            foreach (var i in dataCopy)
-            {
-                if (!i.Name.ToLower().Contains(text.ToLower()))
-                {
-                    data.Remove(data.FirstOrDefault(d => d.Id == i.Id));
-                }
-            }
-        }
+        
     }
 
-    public class TextInputToVisibilityConverter : IMultiValueConverter
-    {
-        public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            // Always test MultiValueConverter inputs for non-null
-            // (to avoid crash bugs for views in the designer)
-            if (values[0] is bool && values[1] is bool)
-            {
-                bool hasText = !(bool)values[0];
-                bool hasFocus = (bool)values[1];
+    //public static class Extensions
+    //{
+    //    public static ObservableCollection<T> Clone<T>(this ObservableCollection<T> listToClone) where T : ICloneable
+    //    {
+    //        return listToClone.Select(item => (T)item.Clone()) as ObservableCollection<T>;
+    //    }
 
-                if (hasFocus || hasText)
-                    return Visibility.Collapsed;
-            }
+    //    public static void Sort<TSource, TKey>(this ObservableCollection<TSource> source, Func<TSource, TKey> keySelector)
+    //    {
+    //        List<TSource> sortedList = source.OrderBy(keySelector).ToList();
+    //        source.Clear();
+    //        foreach (var sortedItem in sortedList)
+    //        {
+    //            source.Add(sortedItem);
+    //        }
+    //    }
 
-            return Visibility.Visible;
-        }
-
-
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, System.Globalization.CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public static class Extensions
-    {
-        public static ObservableCollection<T> Clone<T>(this ObservableCollection<T> listToClone) where T : ICloneable
-        {
-            return listToClone.Select(item => (T)item.Clone()) as ObservableCollection<T>;
-        }
-
-        public static void Sort<TSource, TKey>(this ObservableCollection<TSource> source, Func<TSource, TKey> keySelector)
-        {
-            List<TSource> sortedList = source.OrderBy(keySelector).ToList();
-            source.Clear();
-            foreach (var sortedItem in sortedList)
-            {
-                source.Add(sortedItem);
-            }
-        }
-
-        public static void ReverseSort<TSource, TKey>(this ObservableCollection<TSource> source, Func<TSource, TKey> keySelector)
-        {
-            List<TSource> sortedList = source.OrderByDescending(keySelector).ToList();
-            source.Clear();
-            foreach (var sortedItem in sortedList)
-            {
-                source.Add(sortedItem);
-            }
-        }
-    }
+    //    public static void ReverseSort<TSource, TKey>(this ObservableCollection<TSource> source, Func<TSource, TKey> keySelector)
+    //    {
+    //        List<TSource> sortedList = source.OrderByDescending(keySelector).ToList();
+    //        source.Clear();
+    //        foreach (var sortedItem in sortedList)
+    //        {
+    //            source.Add(sortedItem);
+    //        }
+    //    }
+    //}
 }

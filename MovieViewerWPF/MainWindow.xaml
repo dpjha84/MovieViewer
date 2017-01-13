@@ -12,7 +12,7 @@
                 <RowDefinition Height="1*"/>
                 <RowDefinition Height="12*"/>
             </Grid.RowDefinitions>
-            <TextBox x:Name="textBox" Grid.Row="0" HorizontalAlignment="Left" Margin="10, 5, 0, 0" Text="D:\DP\Test" VerticalAlignment="Top" Width="160" />
+            <TextBox x:Name="textBox" Grid.Row="0" HorizontalAlignment="Left" Margin="10, 5, 0, 0" Text="F:\Test" VerticalAlignment="Top" Width="160" />
             <Button x:Name="button" Content="Refresh" HorizontalAlignment="Left" Margin="180, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0" Click="button_Click"/>
             <Button x:Name="btnWatched" Content="(o)" FontWeight="Bold" Click="BtnWatched_OnClick" HorizontalAlignment="Left" Margin="260, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0" />
             <TextBlock x:Name="statusLebel" Text="" FontWeight="Bold" HorizontalAlignment="Left" Foreground="GreenYellow" Margin="400, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0"/>
