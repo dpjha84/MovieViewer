@@ -56,12 +56,14 @@ namespace MovieViewerWPF
                 }
                 else
                 {
-                    mm.Name = matchingMovieName;
+                    mm.Name = matchingMovieName;                    
                     mm.FullLocalPath = localFileName;
                     mm.LocalName = matchingMovieName;
                 }
+                //mm.ShortName = mm.Name.Length <= 13 ? mm.Name : $"{mm.Name.Substring(0, 10)}...";
                 movies.Movie.Add(mm);
             }
+            mm.ShortName = mm.Name.Length <= 22 ? mm.Name : $"{mm.Name.Substring(0, 19)}...";
             return mm;
         }
 
@@ -115,25 +117,25 @@ namespace MovieViewerWPF
         public Stopwatch sw = new Stopwatch();
         private IMDb GetImdbMovie(string matchingMovieName)
         {
-            sw.Restart();
             IMDb imdb = null;
             for (int i = 0; i < 3; i++)
             {
                 try
                 {
+                    sw.Restart();
                     imdb = new IMDb(matchingMovieName);
+                    imdb.ParseIMDbPage();
+                    sw.Stop();
                     break;
                 }
                 catch (WebException ex)
                 {
-                    if (i == 2)
-                        using (var sw = new StreamWriter(new FileStream("ErrorLog.txt", FileMode.Append, FileAccess.Write, FileShare.ReadWrite)))
-                        {
-                            sw.WriteLineAsync(string.Format("Error while getting imdb data for file: {0}. {1}", matchingMovieName, ex.Message));
-                        }
+                    using (var sw = new StreamWriter(new FileStream("ErrorLog.txt", FileMode.Append, FileAccess.Write, FileShare.ReadWrite)))
+                    {
+                        sw.WriteLineAsync(string.Format("Error while getting imdb data for file: {0}. {1}", matchingMovieName, ex.Message));
+                    }
                 }
-            }
-            sw.Stop();
+            }            
             return imdb;
         }
     }

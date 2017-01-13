@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -15,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
 using System.Xml.Serialization;
@@ -28,10 +31,13 @@ namespace MovieViewerWPF
         MovieCollection movies = null;
         ImdbHelper imdb = null;
         string dirName = null;
-        private bool stopRefresh = false;
+        private bool stopRefresh = false;        
         ObservableCollection<Movie> data = new ObservableCollection<Movie>();
+        ObservableCollection<Movie> dataCopy = new ObservableCollection<Movie>();
         private BackgroundWorker worker = null;
         private bool completed = false;
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public MainWindow()
         {
@@ -42,9 +48,9 @@ namespace MovieViewerWPF
             appRoot = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             cacheFilePath = string.Format(@"{0}\Movies.xml", appRoot);
             ImdbHelper.movies = ReadCache();
-            ic.ItemsSource = data;//.OrderByDescending(d => d.Rating));
+            ic.ItemsSource = data;
         }
-        
+
         private void button_Click(object sender, RoutedEventArgs e)
         {
             dirName = textBox.Text;
@@ -95,26 +101,34 @@ namespace MovieViewerWPF
             Stopwatch sw = new Stopwatch();
             sw.Start();
             //foreach (var file1 in SafeFileEnumerator.EnumerateFiles(dirName, SearchOption.AllDirectories, extList, exclusionList, sz))
-                Parallel.ForEach(SafeFileEnumerator.EnumerateFiles(dirName, SearchOption.AllDirectories, extList, exclusionList, sz), new ParallelOptions { MaxDegreeOfParallelism = 4}, file1 =>
+                Parallel.ForEach(SafeFileEnumerator.EnumerateFiles(dirName, SearchOption.AllDirectories, extList, exclusionList, sz), new ParallelOptions { MaxDegreeOfParallelism = -1}, file1 =>
             {
                 string matchingMovieName = GetMatch(System.IO.Path.GetFileNameWithoutExtension(file1));
                 var movie = imdb.GetMovie(file1, matchingMovieName);
                 movie.FullLocalPath = file1;
-                Dispatcher.Invoke(() => { data.Add(movie); });
+                Dispatcher.Invoke(() => {
+                    data.Add(movie);
+                    data.ReverseSort(x => x.Rating);
+                });
             }
             );
-            using (var sw1 = new StreamWriter(new FileStream("ErrorLog.txt", FileMode.Append, FileAccess.Write, FileShare.ReadWrite)))
-            {
-                sw1.WriteLineAsync($"Total time taken: {imdb.sw.Elapsed}");
-                sw1.WriteLineAsync($"Total time taken in download data: {IMDb_Scraper.IMDb.sw.Elapsed}");
-                sw1.WriteLineAsync($"Total time taken in regex: {IMDb_Scraper.IMDb.sw1.Elapsed}");
-            }
-
+            dataCopy = Clone(data);
             Dispatcher.Invoke(() => { timeTakenLebel.Text = $"Time: {sw.Elapsed.TotalSeconds}s"; });
             completed = true;
             imdb.UpdateCache();
         }
 
+        public ObservableCollection<Movie> Clone(object obj)
+        {
+            IFormatter formatter = new BinaryFormatter();
+            Stream stream = new MemoryStream();
+            using (stream)
+            {
+                formatter.Serialize(stream, obj);
+                stream.Seek(0, SeekOrigin.Begin);
+                return formatter.Deserialize(stream) as ObservableCollection<Movie>;
+            }
+        }
         private string GetMatch(string movieName)
         {
             movieName = movieName.Replace(".", " ");
@@ -125,7 +139,8 @@ namespace MovieViewerWPF
             int minIndex = int.MaxValue;
             bool found = false;
             int[] indexes = { yearIndex, movieName.IndexOf('['), movieName.IndexOf('('),
-                                movieName.IndexOf('-'), movieName.IndexOf("720p"), movieName.IndexOf("1080p"), movieName.IndexOf("DVDRip") };
+                                movieName.IndexOf('-'), movieName.IndexOf("720p"), movieName.IndexOf("1080p"), movieName.IndexOf("DVDRip", StringComparison.OrdinalIgnoreCase),
+                             movieName.IndexOf("DVDSCR", StringComparison.OrdinalIgnoreCase)};
             foreach (var item in indexes)
             {
                 if (item >= 0 && item <= minIndex)
@@ -205,6 +220,87 @@ namespace MovieViewerWPF
             var checkCache = (CheckBox)sender;
             if (!(bool)checkCache.IsChecked)
                 ImdbHelper.movies.Movie.Clear();
+        }
+
+        private void txtSearch_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            //txtSearch.Text = "";
+        }
+
+        private void txtSearch_PreviewMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            //txtSearch.Text = "Search Movies";
+        }
+
+        private void txtSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            data = Clone(dataCopy);
+            ic.ItemsSource = data;
+            var text = ((TextBox)sender).Text;
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return;
+            }
+            foreach (var i in dataCopy)
+            {
+                if (!i.Name.ToLower().Contains(text.ToLower()))
+                {
+                    data.Remove(data.FirstOrDefault(d => d.Id == i.Id));
+                }
+            }
+        }
+    }
+
+    public class TextInputToVisibilityConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            // Always test MultiValueConverter inputs for non-null
+            // (to avoid crash bugs for views in the designer)
+            if (values[0] is bool && values[1] is bool)
+            {
+                bool hasText = !(bool)values[0];
+                bool hasFocus = (bool)values[1];
+
+                if (hasFocus || hasText)
+                    return Visibility.Collapsed;
+            }
+
+            return Visibility.Visible;
+        }
+
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public static class Extensions
+    {
+        public static ObservableCollection<T> Clone<T>(this ObservableCollection<T> listToClone) where T : ICloneable
+        {
+            return listToClone.Select(item => (T)item.Clone()) as ObservableCollection<T>;
+        }
+
+        public static void Sort<TSource, TKey>(this ObservableCollection<TSource> source, Func<TSource, TKey> keySelector)
+        {
+            List<TSource> sortedList = source.OrderBy(keySelector).ToList();
+            source.Clear();
+            foreach (var sortedItem in sortedList)
+            {
+                source.Add(sortedItem);
+            }
+        }
+
+        public static void ReverseSort<TSource, TKey>(this ObservableCollection<TSource> source, Func<TSource, TKey> keySelector)
+        {
+            List<TSource> sortedList = source.OrderByDescending(keySelector).ToList();
+            source.Clear();
+            foreach (var sortedItem in sortedList)
+            {
+                source.Add(sortedItem);
+            }
         }
     }
 }

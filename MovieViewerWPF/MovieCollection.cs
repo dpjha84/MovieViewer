@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -19,6 +22,9 @@ namespace MovieViewerWPF
 
         [System.Xml.Serialization.XmlElement("Name")]
         public string Name { get; set; }
+
+        [System.Xml.Serialization.XmlElement("ShortName")]
+        public string ShortName { get; set; }
 
         [System.Xml.Serialization.XmlElement("Rating")]
         public string Rating { get; set; }
@@ -43,6 +49,10 @@ namespace MovieViewerWPF
 
         [System.Xml.Serialization.XmlElement("Duration")]
         public int Duration { get; set; }
+
+        public bool Hidden { get; set; }
+
+        
     }
 
 

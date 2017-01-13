@@ -51,45 +51,26 @@ namespace IMDb_Scraper
         public string ImdbURL { get; set; }
 
         //Search Engine URLs
-        private string GoogleSearch = "http://www.google.com/search?q=imdb+";
-        private string BingSearch = "http://www.bing.com/search?q=imdb+";
-        private string AskSearch = "http://www.ask.com/web?q=imdb+";
+        private const string GoogleSearch = "http://www.google.com/search?q=imdb+";
+        private const string BingSearch = "http://www.bing.com/search?q=imdb+";
+        private const string AskSearch = "http://www.ask.com/web?q=imdb+";
+        private const string ImdbPageRegex = @"<a href=""(http://www.imdb.com/title/tt\d{7}/)"".*?>.*?</a>";
+        private string imdbUrl = null;
+        private bool getExtraInfo = false;
 
         //Constructor
         public IMDb(string MovieName, bool GetExtraInfo = true)
         {
-            string imdbUrl = getIMDbUrl(System.Uri.EscapeUriString(MovieName));
-            if (!string.IsNullOrEmpty(imdbUrl))
-            {
-                parseIMDbPage(imdbUrl, GetExtraInfo);
-            }
-        }
-
-        //Get IMDb URL from search results
-        private string getIMDbUrl(string MovieName, string searchEngine = "google")
-        {
-            string url = GoogleSearch + MovieName; //default to Google search
-            if (searchEngine.ToLower().Equals("google")) url = BingSearch + MovieName;
-            else if (searchEngine.ToLower().Equals("bing")) url = GoogleSearch + MovieName;
-            else if (searchEngine.ToLower().Equals("ask")) url = AskSearch + MovieName;
-            var html = getUrlData(url);
-
-            var imdbUrls = match(@"<a href=""(http://www.imdb.com/title/tt\d{7}/)"".*?>.*?</a>", html);
-            if (!string.IsNullOrWhiteSpace(imdbUrls))
-                return imdbUrls;
-            //return (string)imdbUrls.GetEnumerator().Current; //return first IMDb result
-            else if (searchEngine.ToLower().Equals("google")) //if Google search fails
-                return getIMDbUrl(MovieName, "bing"); //search using Bing
-            else if (searchEngine.ToLower().Equals("bing")) //if Bing search fails
-                return getIMDbUrl(MovieName, "ask"); //search using Ask
-            else //search fails
-                return string.Empty;
+            imdbUrl = GetUrlData(System.Uri.EscapeUriString(MovieName));
+            getExtraInfo = GetExtraInfo;
         }
 
         //Parse IMDb page data
-        private void parseIMDbPage(string imdbUrl, bool GetExtraInfo)
+        public void ParseIMDbPage()
         {
-            string html = getUrlData(imdbUrl + "combined");
+            if (string.IsNullOrWhiteSpace(imdbUrl)) return;
+
+            string html = GetImdbPage(imdbUrl + "combined");
             Id = match(@"<link rel=""canonical"" href=""http://www.imdb.com/title/(tt\d{7})/combined"" />", html);
             if (!string.IsNullOrEmpty(Id))
             {
@@ -239,27 +220,46 @@ namespace IMDb_Scraper
         //    return sb.ToString();
         //}
 
-        private string getUrlData(string url)
+        private string GetUrlData(string movieName)
+        {            
+            List<string> urls = new List<string> { $"{BingSearch}{movieName}", $"{GoogleSearch}{movieName}", $"{AskSearch}{movieName}" };
+
+            using (var client = new WebClient())
+            {
+                foreach (var url in urls)
+                {
+                    var datastream = client.OpenRead(url);
+                    using (StreamReader reader = new StreamReader(datastream))
+                    {
+                        StringBuilder sb = new StringBuilder();
+                        while (!reader.EndOfStream)
+                            sb.Append(reader.ReadLine());
+                        var data = sb.ToString();
+                        if (!string.IsNullOrWhiteSpace(data))
+                        {
+                            var imdbUrl = match(ImdbPageRegex, data);
+                            if (!string.IsNullOrWhiteSpace(imdbUrl))
+                                return imdbUrl;
+                            else
+                                using (var sw = new StreamWriter(new FileStream("ErrorLog.txt", FileMode.Append, FileAccess.Write, FileShare.ReadWrite)))
+                                {
+                                    sw.WriteLineAsync($"Couldn't get imdb page for url: {url}");
+                                }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        private string GetImdbPage(string url)
         {
-            //HttpClient c = new HttpClient();
-            //c.Timeout = TimeSpan.FromSeconds(200);
-            //Task<string> t = c.GetStringAsync(url);
-            //return t.Result;
-            //HttpClient client = new HttpClient();
-            //return await client.get(url);
-            //Random r = new Random();
-            //Random IP Address
-            //client.Headers["X-Forwarded-For"] = r.Next(0, 255) + "." + r.Next(0, 255) + "." + r.Next(0, 255) + "." + r.Next(0, 255);
-            //Random User-Agent
-            //client.Headers["User-Agent"] = "Mozilla/" + r.Next(3, 5) + ".0 (Windows NT " + r.Next(3, 5) + "." + r.Next(0, 2) + "; rv:2.0.1) Gecko/20100101 Firefox/" + r.Next(3, 5) + "." + r.Next(0, 5) + "." + r.Next(0, 5);
-            sw.Restart();
             var datastream = new WebClient().OpenRead(url);
             StreamReader reader = new StreamReader(datastream);
             StringBuilder sb = new StringBuilder();
             while (!reader.EndOfStream)
                 sb.Append(reader.ReadLine());
             return sb.ToString();
-            sw.Stop();
         }
         public static Stopwatch sw = new Stopwatch();
         //private string GetImdbUrl(string html, string MovieName)
@@ -278,10 +278,4 @@ namespace IMDb_Scraper
 
         //public List<ImdbMovie> MovieTasks = new List<ImdbMovie>();
     }
-
-    //public class ImdbMovie
-    //{
-    //    public Task<Stream> DataStream { get; set; }
-    //    public string MovieName { get; set; }
-    //}
 }
