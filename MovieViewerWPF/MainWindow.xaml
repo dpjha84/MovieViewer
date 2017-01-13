@@ -12,47 +12,56 @@
                 <RowDefinition Height="1*"/>
                 <RowDefinition Height="12*"/>
             </Grid.RowDefinitions>
-            <TextBox x:Name="textBox" Grid.Row="0" HorizontalAlignment="Left" Margin="10, 5, 0, 0" Text="F:\Test" VerticalAlignment="Top" Width="160" />
+            <TextBox x:Name="textBox" Grid.Row="0" HorizontalAlignment="Left" Margin="10, 5, 0, 0" Text="D:\DP\Test" VerticalAlignment="Top" Width="160" />
             <Button x:Name="button" Content="Refresh" HorizontalAlignment="Left" Margin="180, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0" Click="button_Click"/>
-            <Button x:Name="button1" Content="Clean Up" HorizontalAlignment="Left" Margin="240, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0" />
+            <Button x:Name="btnWatched" Content="(o)" FontWeight="Bold" Click="BtnWatched_OnClick" HorizontalAlignment="Left" Margin="260, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0" />
             <TextBlock x:Name="statusLebel" Text="" FontWeight="Bold" HorizontalAlignment="Left" Foreground="GreenYellow" Margin="400, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0"/>
             <CheckBox x:Name="chkCache" FontWeight="Bold" Content="Cache data" Unchecked="chkCache_Unchecked" IsChecked="True" HorizontalAlignment="Left" Foreground="GreenYellow"  Margin="820, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0"/>
             <TextBlock x:Name="timeTakenLebel" FontWeight="Bold" Text="" HorizontalAlignment="Left" Foreground="GreenYellow" Margin="600, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0"/>
             <TextBox x:Name="txtSearch" Width="100" Text="" HorizontalAlignment="Left" TextChanged="txtSearch_TextChanged" Margin="300, 5, 0, 0" VerticalAlignment="Top" Grid.Row="0"/>
             <Grid Name="grid1" Grid.Row="1" Background="Transparent" >
-                <ItemsControl   Name="ic"  HorizontalContentAlignment="Center" Foreground="White">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border BorderBrush="White" Height="170" Width="170"  BorderThickness="1" CornerRadius="2" Margin="2" Padding="3" >
-                                <Grid Grid.Column="0" Grid.Row="0" Height="170" Width="170" MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave">
-                                    <StackPanel Orientation="Horizontal">
-                                        <!--<CheckBox Name="chk" Margin="2" Tag="{Binding}"  ></CheckBox>-->
-                                        <TextBlock Text="{Binding ShortName}" TextWrapping="Wrap" Width="150" FontWeight="Bold" ></TextBlock>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Button Initialized="FrameworkElement_OnInitialized" MouseDoubleClick="Control_OnMouseDoubleClick">
-                                            <Button.Template>
-                                                <ControlTemplate>
-                                                    <Image Source="{Binding LocalImageThumbnail}" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
-                                                </ControlTemplate>
-                                            </Button.Template>
-                                        </Button>
-                                        <StackPanel Orientation="Vertical" >
-                                            <!--<TextBlock Text="{Binding Name}" TextWrapping="Wrap" Width="170" FontWeight="Bold" ></TextBlock>-->
-                                            <TextBlock Text="{Binding Rating}" TextWrapping="Wrap" ></TextBlock>
-                                            <Button Name="btnEye" Content="hi" Foreground="White" Uid="btneye" Visibility="Hidden" ></Button>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate >
-                            <WrapPanel Orientation="Horizontal" ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
+                <ItemsControl   Name="ic" HorizontalContentAlignment="Center" Foreground="White">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                            <Border Name="MyBorder"  BorderBrush="White" Height="170" Width="170"  BorderThickness="1" CornerRadius="2" Margin="2" Padding="3" >
+                                <Grid Grid.Column="0" Grid.Row="0" Height="170" Width="170" >
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding Name}" TextWrapping="Wrap" Width="150" FontWeight="Bold" ></TextBlock>
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal">
+                                                    <Button Initialized="FrameworkElement_OnInitialized" MouseDoubleClick="Control_OnMouseDoubleClick">
+                                                        <Button.Template>
+                                                            <ControlTemplate>
+                                                                <Image Source="{Binding LocalImageThumbnail}" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                        <StackPanel Orientation="Vertical" >
+                                                            <TextBlock Text="{Binding Rating}" TextWrapping="Wrap" FontWeight="Bold" ></TextBlock>
+                                                            <Button Name="btnEye" Content="hi" Foreground="White" Uid="btneye" Click="BtnEye_OnClick" >
+                                                                <Button.Style>
+                                                                    <Style>
+                                                                        <Setter Property="Button.Visibility" Value="Collapsed"></Setter>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding ElementName=MyBorder, Path=IsMouseOver}" Value="true">
+                                                                                <Setter Property="Button.Visibility" Value="Visible"></Setter>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Button.Style> 
+                                                            </Button>
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate >
+                                            <WrapPanel Orientation="Horizontal" ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+                                        </ItemsPanelTemplate>                                        
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>                            
             </Grid>
         </Grid>
     </ScrollViewer>

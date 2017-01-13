@@ -36,8 +36,7 @@ namespace MovieViewerWPF
         ObservableCollection<Movie> dataCopy = new ObservableCollection<Movie>();
         private BackgroundWorker worker = null;
         private bool completed = false;
-
-        public event PropertyChangedEventHandler PropertyChanged;
+        private bool? showWatched = null;
 
         public MainWindow()
         {
@@ -106,9 +105,10 @@ namespace MovieViewerWPF
                 string matchingMovieName = GetMatch(System.IO.Path.GetFileNameWithoutExtension(file1));
                 var movie = imdb.GetMovie(file1, matchingMovieName);
                 movie.FullLocalPath = file1;
-                Dispatcher.Invoke(() => {
+                Dispatcher.Invoke(() =>
+                {
                     data.Add(movie);
-                    data.ReverseSort(x => x.Rating);
+                    data.Sort(d => d.Rating);
                 });
             }
             );
@@ -163,7 +163,9 @@ namespace MovieViewerWPF
         private void FrameworkElement_OnInitialized(object sender, EventArgs e)
         {
             var button = (Button)sender;
-            string file = ((MovieViewerWPF.Movie)(((System.Windows.FrameworkElement)sender).DataContext)).LocalImageThumbnail;
+            var movie = ((MovieViewerWPF.Movie) (((System.Windows.FrameworkElement) sender).DataContext));
+            if (movie == null) return;
+            string file = movie.LocalImageThumbnail;
             if (System.IO.Path.GetExtension(file) != ".jpg")
             {
                 button.Height = 20;
@@ -199,27 +201,60 @@ namespace MovieViewerWPF
             return movies;
         }
 
-        private void Grid_MouseEnter(object sender, MouseEventArgs e)
-        {
-            Grid b = sender as Grid;
-            //b.BorderThickness = new Thickness(3);
-            Button btn = (Button)b.FindName("btnEye");
-            btn.Visibility = Visibility.Visible;
-        }
-
-        private void Grid_MouseLeave(object sender, MouseEventArgs e)
-        {
-            Grid b = sender as Grid;
-            //b.BorderThickness = new Thickness(1);
-            Button btn = (Button)b.FindName("btnEye");
-            btn.Visibility = Visibility.Hidden;
-        }
-
         private void chkCache_Unchecked(object sender, RoutedEventArgs e)
         {
             var checkCache = (CheckBox)sender;
             if (!(bool)checkCache.IsChecked)
                 ImdbHelper.movies.Movie.Clear();
+        }
+
+        private void BtnEye_OnClick(object sender, RoutedEventArgs e)
+        {
+            var button = (Button)sender;
+            var movie = ((Movie) (((FrameworkElement) sender).DataContext));
+            movie.Watched = !movie.Watched;
+            dataCopy = data.Clone();
+            imdb.UpdateCache();
+        }
+
+        private void BtnWatched_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (showWatched == null)
+                showWatched = true;
+            else
+                showWatched = !showWatched;
+
+            data.Clear();
+            foreach (var movie in dataCopy)
+            {
+                var temp = dataCopy.FirstOrDefault(a => a.Id == movie.Id && a.Watched == (bool) showWatched);
+                if (temp != null)
+                    data.Add(temp);
+            }
+        }
+    }
+
+    public static class Extensions
+    {
+        public static void Sort<TSource, TKey>(this ObservableCollection<TSource> source, Func<TSource, TKey> keySelector)
+        {
+            List<TSource> sortedList = source.OrderByDescending(keySelector).ToList();
+            source.Clear();
+            foreach (var sortedItem in sortedList)
+            {
+                source.Add(sortedItem);
+            }
+        }
+
+        public static T Clone<T>(this T source)
+        {
+            MemoryStream ms = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(ms, source);
+            ms.Position = 0;
+            object obj = bf.Deserialize(ms);
+            ms.Close();
+            return (T)obj;
         }
 
         private void txtSearch_PreviewMouseDown(object sender, MouseButtonEventArgs e)
