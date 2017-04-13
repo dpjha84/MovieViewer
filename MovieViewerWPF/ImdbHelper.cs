@@ -43,8 +43,8 @@ namespace MovieViewerWPF
                     mm.FullLocalPath = localFileName;
                     mm.Rating = imdb.Rating;
                     //mm.Genre = imdb.Genres.Count > 0 ? string.Format("{0}, {1}", imdb.Genres[0], imdb.Genres[1])  : string.Empty;
-                    //mm.Genre = imdb.Genres.Count > 0 ? (string.Format("{0}", imdb.Genres.Count > 1 ?
-                    //string.Format("{0}, {1}", imdb.Genres[0], imdb.Genres[1]) : imdb.Genres[0])) : string.Empty;
+                    mm.Genre = imdb.Genres.Count > 0 ? (string.Format("{0}", imdb.Genres.Count > 1 ?
+                    string.Format("{0}, {1}", imdb.Genres[0], imdb.Genres[1]) : imdb.Genres[0])) : string.Empty;
                     mm.ImageThumbnail = imdb.Poster;
                     mm.Id = imdb.Id;
                     mm.LocalImageThumbnail = LoadImage(mm);

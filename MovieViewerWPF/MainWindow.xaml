@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MovieViewerWPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525" WindowState="Maximized">
+        Title="Movie Viewer" Height="350" Width="525" WindowState="Maximized">
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <Grid Background="Black">
             <Grid.RowDefinitions>
@@ -23,7 +23,7 @@
                 <ItemsControl   Name="ic" HorizontalContentAlignment="Center" Foreground="White">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                            <Border Name="MyBorder"  BorderBrush="White" Height="170" Width="170"  BorderThickness="1" CornerRadius="2" Margin="2" Padding="3" >
+                            <Border Name="MyBorder"  BorderBrush="White" Height="170" Width="170"  BorderThickness="1" CornerRadius="2" Margin="7" Padding="3" >
                                 <Grid Grid.Column="0" Grid.Row="0" Height="170" Width="170" >
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="{Binding Name}" TextWrapping="Wrap" Width="150" FontWeight="Bold" ></TextBlock>

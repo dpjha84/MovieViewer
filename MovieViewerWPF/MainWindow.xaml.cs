@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -48,6 +49,9 @@ namespace MovieViewerWPF
             cacheFilePath = string.Format(@"{0}\Movies.xml", appRoot);
             ImdbHelper.movies = ReadCache();
             ic.ItemsSource = data;
+            dirName = ConfigurationManager.AppSettings.Get("dirName");
+            textBox.Text = dirName;
+            button_Click(null, null);
         }
 
         private void button_Click(object sender, RoutedEventArgs e)
@@ -217,7 +221,9 @@ namespace MovieViewerWPF
             }
             foreach (var i in dataCopy)
             {
-                if (!i.Name.ToLower().Contains(text.ToLower()))
+                if (!i.Name.ToLower().Contains(text.ToLower()) 
+                    //|| !i.Genre.ToLower().Contains(text.ToLower())
+                    )
                 {
                     data.Remove(data.FirstOrDefault(d => d.Id == i.Id));
                 }
